@@ -44,6 +44,9 @@ class Configuration extends modbat.config.Configuration {
   @Doc("use user-defined search function of path coverage graphs")
   var bfsearchFun: Boolean = false
 
+  @Doc("test with user-defined search function of path coverage graphs")
+  var bfsearchFunTest: Boolean = false
+
   @Doc("output directory for dot files")
   var dotDir: String = "."
 

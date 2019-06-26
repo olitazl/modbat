@@ -24,7 +24,6 @@ import modbat.trace._
 import modbat.util.CloneableRandom
 import modbat.util.SourceInfo
 import modbat.util.FieldUtil
-
 import com.miguno.akka.testing.VirtualTime
 
 class NoTaskException(message: String = null, cause: Throwable = null)
@@ -265,8 +264,15 @@ object Modbat {
     // parentNodeTranID is the target transition's parent transition's ID
     var input: String = ""
     import scala.io.StdIn.readLine
+    import scala.concurrent.duration._
+
     while (input != "quit") {
-      input = readLine()
+      if (Main.config.bfsearchFunTest) {
+        val deadline = 6.seconds.fromNow
+        while (deadline.hasTimeLeft) {}
+        input = "quit"
+      } else input = readLine()
+
       if (input != "quit") {
         val goal = input.split("-")
         val foundNode =
@@ -287,8 +293,11 @@ object Modbat {
 
     if (Main.config.dotifyPathCoverage) {
       pathCoverageDisplay // Display path coverage/execution paths in state and path graphs -Rui
-      if (Main.config.bfsearchFun)
+      if (Main.config.bfsearchFun || Main.config.bfsearchFunTest) {
         pathCoverageBFSearch // User search function to find a transition in trie as a starting point to display in graphs
+        //val search = new PathGraphsBFSearch(trie)
+        //search.pathGraphsBFSearch
+      }
     }
 
     Log.info(
@@ -686,16 +695,18 @@ object Modbat {
       case (result: (TransitionResult, RecordedTransition),
             pathResult: PathResult) => {
         if (!pathResult.isObserver) {
-          storePathInfo(pathResult.result, pathResult.successor,
-                        pathResult.backtracked, pathResult.failed)
+          storePathInfo(pathResult.result,
+                        pathResult.successor,
+                        pathResult.backtracked,
+                        pathResult.failed)
         }
         result
       }
     }
   }
 
-  def executeSuccessorTrans: ((TransitionResult, RecordedTransition),
-                              PathResult) = {
+  def executeSuccessorTrans
+    : ((TransitionResult, RecordedTransition), PathResult) = {
     var successors = allSuccessors(null)
     var allSucc = successors
     var totalW = totalWeight(successors)
@@ -735,13 +746,19 @@ object Modbat {
             val observerResult = updateObservers
             if (TransitionResult.isErr(observerResult)) {
               return ((observerResult, result._2),
-                      new PathResult(result, successor,
-                                     backtracked, true, true))
+                      new PathResult(result,
+                                     successor,
+                                     backtracked,
+                                     true,
+                                     true))
             }
             if (otherThreadFailed) {
               return ((ExceptionOccurred(MBT.externalException.toString), null),
-                      new PathResult(result, successor,
-                                     backtracked, true, false))
+                      new PathResult(result,
+                                     successor,
+                                     backtracked,
+                                     true,
+                                     false))
             }
             allSucc = successors
           }
@@ -753,8 +770,7 @@ object Modbat {
             assert(TransitionResult.isErr(t))
             printTrace(executedTransitions.toList)
             return (result,
-                    new PathResult(result, successor,
-                                   backtracked, true, false))
+                    new PathResult(result, successor, backtracked, true, false))
           }
         }
         storePathInfo(result, successor, backtracked, false)
