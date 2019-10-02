@@ -9,7 +9,7 @@ object Log {
   val Error = 5
   val None = 10
 
-  private var level = Info
+  /*private*/ var level = Info
   // errLevel can currently not be set - this can be added later
   // if a use case for changing it exists
   private var errLevel = Warning
@@ -23,9 +23,9 @@ object Log {
   def log(msg: String, level: Int) {
     if (isLogging(level)) {
       if (errLevel <= level) {
-	Console.err.println(msg)
+	System.err.println(msg)
       } else {
-	Console.out.println(msg)
+	System.out.println(msg)
       }
     }
   }

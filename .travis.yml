@@ -13,8 +13,8 @@ before_install:
 
 script:
   - scala -version
-  - ./gradlew buildDependents
   - ./gradlew test
+  - ./gradlew jar
   - bash bin/test.sh
 
 dist: trusty

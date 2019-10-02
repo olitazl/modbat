@@ -14,9 +14,12 @@ import modbat.log.Log
   * @param typeName The type of the graph is point graph
   * @param graphInitNode The name of the initial node in the graph (only used for the generated file name)
   */
-class PathInPointGraph(val root: TrieNode,
+class PathInPointGraph(val config: Configuration,
+                       val modelClassName: String,
+                       val root: TrieNode,
                        val typeName: String,
-                       val graphInitNode: String)
+                       val graphInitNode: String,
+                       val dotDir: String)
     extends PathVisualizer {
   require(typeName == "Point", "the input of path visualizer must be Point")
 
@@ -123,7 +126,7 @@ class PathInPointGraph(val root: TrieNode,
       }
 
       // the "full" graph case
-      if (Main.config.pathCoverageGraphMode.equals("full") && node.isLeaf && node.transitionInfo.transCounter > 1) {
+      if (config.pathCoverageGraphMode.equals("full") && node.isLeaf && node.transitionInfo.transCounter > 1) {
         for (i <- 0 until node.transitionInfo.transCounter - 1) {
           Log.debug(
             "replicated node is here to be recorded:" + node.currentTransition + ", current node counter:" + node.currentNodeCounterRecorder)
@@ -304,7 +307,7 @@ class PathInPointGraph(val root: TrieNode,
       val choiceNode = root.children(choiceKey)
 
       var choiceNodeStyle
-        : String = " , shape=diamond, width=0.05, height=0.05, fontsize=11, xlabel=\"" + (if (Main.config.pathLabelDetail)
+        : String = " , shape=diamond, width=0.05, height=0.05, fontsize=11, xlabel=\"" + (if (config.pathLabelDetail)
                                                                                             choiceNode.choiceCounter
                                                                                           else
                                                                                             "") + " \"];"
@@ -368,7 +371,7 @@ class PathInPointGraph(val root: TrieNode,
     }
     // set output label optional
     def labelOutputOptional(labelName: String, labelValue: String): String =
-      if (Main.config.pathLabelDetail) labelName + labelValue + "\\n"
+      if (config.pathLabelDetail) labelName + labelValue + "\\n"
       else ""
 
     val modelName: String = node.modelInfo.modelName
@@ -404,7 +407,7 @@ class PathInPointGraph(val root: TrieNode,
       count
         .split(";")
         .map(_.toDouble)
-        .sum * 100.0d / Main.config.nRuns.toDouble + 1.0d).toString + "\","
+        .sum * 100.0d / config.nRuns.toDouble + 1.0d).toString + "\","
 
     val label: String =
       "[" + edgeStyle +

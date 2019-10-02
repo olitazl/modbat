@@ -3,21 +3,24 @@ package modbat.mbt
 import modbat.config.ConfigMgr
 import modbat.config.Version
 import modbat.log.Log
+import modbat.util.CloneableRandom
 
 object Main {
-  val config = new Configuration()
-
   def main(args: Array[String]) {
-    Modbat.isUnitTest = false
+    val config = new Configuration()
+    val modbat = new Modbat(config)
+    modbat.isUnitTest = false
     try {
-        run(args) // TODO: do not call exit once exceptions are used
+        run(modbat, args, config)
     } catch {
-      case e: Exception => System.exit(1)
+      case e: Exception => {
+        System.exit(1)
+      }
     }
     System.exit(0)
   }
 
-  def run(args: Array[String]){
+  def run(modbat: Modbat, args: Array[String], config: Configuration) {
     var modelClassName: String = null
     val c = new ConfigMgr("scala modbat.jar",
                           "CLASSNAME",
@@ -50,23 +53,29 @@ object Main {
       }
     }
 
-    setup(modelClassName) // TODO: refactor into case code below once needed
+//    modbat.init
 
-    Modbat.init
+    setup(modbat, config, modelClassName)
+
     /* execute */
     config.mode match {
       case "dot" =>
-        new Dotify(MBT.launch(null), modelClassName + ".dot").dotify()
-      case _ => Modbat.explore(config.nRuns)
+	new Dotify(config, modbat.mbt.launch(null), modelClassName + ".dot").dotify()
+      case _ => modbat.explore(config.nRuns)
     }
   }
 
-  def setup(modelClassName: String) {
+  def setup(modbat: Modbat, config: Configuration, modelClassName: String) {
     /* configure components */
-    Log.setLevel(config.logLevel)
-    MBT.configClassLoader(config.classpath)
-    MBT.loadModelClass(modelClassName)
-    MBT.setRNG(config.randomSeed)
     MBT.isOffline = false
+    Log.setLevel(config.logLevel)
+    modbat.mbt.enableStackTrace = config.printStackTrace
+    modbat.mbt.maybeProbability = config.maybeProbability
+
+    modbat.mbt.configClassLoader(config.classpath)
+    modbat.mbt.loadModelClass(modelClassName)
+    modbat.mbt.setRNG(config.randomSeed)
+    modbat.mbt.precondAsFailure = config.precondAsFailure
+    modbat.setup
   }
 }

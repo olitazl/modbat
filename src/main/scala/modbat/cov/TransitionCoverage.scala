@@ -6,19 +6,16 @@ package modbat.cov
 import modbat.dsl.Transition
 import modbat.dsl.NextStateOverride
 import modbat.mbt.MBT
+import modbat.mbt.Modbat
+import modbat.mbt.ModelInstance
 import modbat.trace.Ok
 import modbat.trace.RecordedTransition
 
 object TransitionCoverage {
-
-  def cover(model: MBT,
-            t: Transition,
-            nextState: Transition = null,
-            excType: String = null,
-            sameAgain: Boolean = false) = {
-    assert(t.coverage != null, {
-      "No coverage object for transition " + t.toString
-    })
+  def cover(model: ModelInstance, t: Transition, nextState: Transition = null,
+	    excType: String = null, sameAgain: Boolean = false) = {
+    assert (t.coverage != null,
+	    { "No coverage object for transition " + t.toString })
     if (nextState == null) {
       setCoverageAndState(t, model)
     } else {
@@ -29,14 +26,14 @@ object TransitionCoverage {
     (Ok(sameAgain), new RecordedTransition(model, t, null, nextState, excType))
   }
 
-  def setCoverageAndState(t: Transition, model: MBT) {
+  def setCoverageAndState(t: Transition, model: ModelInstance) {
     t.coverage.cover
     StateCoverage.cover(t.dest)
     assert(model != null)
     model.currentState = t.dest
   }
 
-  def reuseCoverageInfo(instance: MBT, master: MBT, className: String) {
+  def reuseCoverageInfo(instance: ModelInstance, master: ModelInstance, className: String) {
     // copy values of previous equivalent instance for performance
     // and correct coverage information
     val transIt = instance.transitions.iterator
@@ -51,12 +48,11 @@ object TransitionCoverage {
     }
   }
 
-  def reuseTransInfo(instance: MBT, newTrans: Transition, master: Transition) {
-    assert(
-      (newTrans.origin.name.equals(master.origin.name)) &&
-        (newTrans.dest.name.equals(master.dest.name)),
-      { newTrans.toString + " does not match " + master.toString }
-    )
+  def reuseTransInfo(instance: ModelInstance,
+		     newTrans: Transition, master: Transition) {
+    assert ((newTrans.origin.name.equals(master.origin.name)) && 
+	    (newTrans.dest.name.equals(master.dest.name)),
+      { newTrans.toString + " does not match " + master.toString })
     newTrans.origin = master.origin
     newTrans.dest = master.dest
     newTrans.coverage = master.coverage
@@ -78,9 +74,8 @@ object TransitionCoverage {
                       master.nonDetExceptions)
   }
 
-  def reuseOverrideInfo(instance: MBT,
-                        target: List[NextStateOverride],
-                        source: List[NextStateOverride]) {
+  def reuseOverrideInfo(instance: ModelInstance, target: List[NextStateOverride],
+			source: List[NextStateOverride]) {
     val sourceIt = source.iterator
     val targetIt = target.iterator
     while (sourceIt.hasNext) {
@@ -98,8 +93,8 @@ object TransitionCoverage {
     t.coverage.precond.count = 0
   }
 
-  def precond(outcome: Boolean) {
-    val t = MBT.currentTransition
+  def precond(mbt: MBT, outcome: Boolean) {
+    val t = mbt.currentTransition
     val pCov = t.coverage.precond
     val c = pCov.count
     if (outcome) {

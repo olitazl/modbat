@@ -11,9 +11,12 @@ import util.control.Breaks._
   * @param typeName The type of the graph is state graph
   * @param graphInitNode The name of the initial node in the graph (only used for the generated file name)
   */
-class PathInStateGraph(val root: TrieNode,
+class PathInStateGraph(val config: Configuration,
+                       val modelClassName: String,
+                       val root: TrieNode,
                        val typeName: String,
-                       val graphInitNode: String)
+                       val graphInitNode: String,
+                       val dotDir: String)
     extends PathVisualizer {
   require(typeName == "State", "the input of path visualizer must be Ellipse")
 
@@ -70,7 +73,7 @@ class PathInStateGraph(val root: TrieNode,
 
       var sameTransition = false
       // use abstractions to merge transitions' counters and choices's counters
-      if (Main.config.pathCoverageGraphMode.equals("abstracted"))
+      if (config.pathCoverageGraphMode.equals("abstracted"))
         if (nodeRecorder != null) {
           breakable { // break this loop if found the same transition
             for (n <- nodeRecorder) {
@@ -197,7 +200,7 @@ class PathInStateGraph(val root: TrieNode,
         // draw Choices with transitions
         drawTransWithChoices(n, choiceTree.root, 0, "")
         // display choice tree for debug
-        if (Main.config.logLevel == Log.Debug)
+        if (config.logLevel == Log.Debug)
           choiceTree.displayChoices(choiceTree.root, 0)
       } else {
         // transitions without choices situation
@@ -210,7 +213,7 @@ class PathInStateGraph(val root: TrieNode,
         // edge label
         val edgeLabel: String = createEdgeLabel(n, edgeStyle, n.transCounter)
 
-        Main.config.pathCoverageGraphMode match {
+        config.pathCoverageGraphMode match {
           case "full" =>
             // output all the edges according to trc and tpc counters
             for (trc_tpc <- n.transExecutedRecords.split(",")) {
@@ -302,7 +305,7 @@ class PathInStateGraph(val root: TrieNode,
 
       // choice node style
       val choiceNodeStyle
-        : String = " , shape=diamond, width=0.2, height=0.3, fontsize=11, xlabel=\"" + (if (Main.config.pathLabelDetail)
+        : String = " , shape=diamond, width=0.2, height=0.3, fontsize=11, xlabel=\"" + (if (config.pathLabelDetail)
                                                                                           choiceNode.choiceCounter
                                                                                         else
                                                                                           "") + "\"];"
@@ -320,7 +323,7 @@ class PathInStateGraph(val root: TrieNode,
       val stepEdgeLabel: String =
         createEdgeLabel(nodeInfo, edgeStyle, choiceNode.choiceCounter.toString)
 
-      Main.config.pathCoverageGraphMode match {
+      config.pathCoverageGraphMode match {
         case "full" =>
           for (cc <- 0 until choiceNode.choiceCounter) {
             // update counters
@@ -391,7 +394,7 @@ class PathInStateGraph(val root: TrieNode,
 
     // set output label optional
     def labelOutputOptional(labelName: String, labelValue: String): String =
-      if (Main.config.pathLabelDetail) labelName + labelValue + "\\n"
+      if (config.pathLabelDetail) labelName + labelValue + "\\n"
       else ""
 
     val modelName: String = nodeInfo.node.modelInfo.modelName.toString
@@ -422,12 +425,12 @@ class PathInStateGraph(val root: TrieNode,
 
     // calculate penwidth
     var edgeWidth = ""
-    if (Main.config.pathCoverageGraphMode.equals("abstracted"))
+    if (config.pathCoverageGraphMode.equals("abstracted"))
       edgeWidth = "penwidth=\"" + log10(
         count
           .split(";")
           .map(_.toDouble)
-          .sum * 100.0d / Main.config.nRuns.toDouble + 1.0d).toString + "\","
+          .sum * 100.0d / config.nRuns.toDouble + 1.0d).toString + "\","
 
     val label: String =
       "[" + edgeStyle +

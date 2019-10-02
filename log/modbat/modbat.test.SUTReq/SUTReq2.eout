@@ -1,0 +1,8 @@
+<<<<<<< HEAD:log/modbat/modbat.test.SUTReq/-s=1-n=1--no-redirect-out--log-level=fine.eout
+[WARNING] All preconditions false at transition modbat/test/SUTReq.scala:7 require
+[WARNING] All preconditions false at transition modbat/test/SUTReq.scala:10 fail
+=======
+[WARNING] All preconditions false at transition modbat/test/SUTReq.scala require
+[WARNING] All preconditions false at transition modbat/test/SUTReq.scala fail
+>>>>>>> 4b6c55b3edf395840abab77f74854f7853296e46:log/modbat/modbat.test.SUTReq/SUTReq2.eout
+[WARNING] Maybe the preconditions are too strict?
